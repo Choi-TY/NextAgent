@@ -108,6 +108,9 @@ app.post('/tasks/:id/edit-analysis', async (req, res) => {
   };
 
   const updatedTask = await updateTask(task.id, { currentAnalysis: nextAnalysis });
+  if (!updatedTask) {
+    return res.status(500).send('Could not update task');
+  }
   const profile = await getLearningProfile();
   const learned = updateLearningProfileFromEdit(profile, task.currentAnalysis, nextAnalysis);
   await updateLearningProfile(learned);

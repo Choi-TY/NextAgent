@@ -2,6 +2,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const DATA_FILE = path.join(__dirname, '../../data/app-data.json');
+let writeQueue = Promise.resolve();
 
 const defaultData = {
   tasks: [],
@@ -34,6 +35,18 @@ async function saveData(data) {
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function queueWrite(work) {
+  const next = writeQueue.then(
+    () => work(),
+    () => work()
+  );
+  writeQueue = next.then(
+    () => undefined,
+    () => undefined
+  );
+  return next;
+}
+
 async function listTasks() {
   const data = await loadData();
   return data.tasks;
@@ -45,31 +58,39 @@ async function getTaskById(id) {
 }
 
 async function addTask(task) {
-  const data = await loadData();
-  data.tasks.push(task);
-  await saveData(data);
+  await queueWrite(async () => {
+    const data = await loadData();
+    data.tasks.push(task);
+    await saveData(data);
+  });
 }
 
 async function updateTask(id, updates) {
-  const data = await loadData();
-  const index = data.tasks.findIndex((task) => task.id === id);
-  if (index === -1) return null;
-  data.tasks[index] = { ...data.tasks[index], ...updates, updatedAt: new Date().toISOString() };
-  await saveData(data);
-  return data.tasks[index];
+  return queueWrite(async () => {
+    const data = await loadData();
+    const index = data.tasks.findIndex((task) => task.id === id);
+    if (index === -1) return null;
+    data.tasks[index] = { ...data.tasks[index], ...updates, updatedAt: new Date().toISOString() };
+    await saveData(data);
+    return data.tasks[index];
+  });
 }
 
 async function updateLearningProfile(learningProfile) {
-  const data = await loadData();
-  data.learningProfile = { ...defaultData.learningProfile, ...learningProfile };
-  await saveData(data);
-  return data.learningProfile;
+  return queueWrite(async () => {
+    const data = await loadData();
+    data.learningProfile = { ...defaultData.learningProfile, ...learningProfile };
+    await saveData(data);
+    return data.learningProfile;
+  });
 }
 
 async function recordFatigue(level) {
-  const data = await loadData();
-  data.fatigueLogs.push({ level, recordedAt: new Date().toISOString() });
-  await saveData(data);
+  await queueWrite(async () => {
+    const data = await loadData();
+    data.fatigueLogs.push({ level, recordedAt: new Date().toISOString() });
+    await saveData(data);
+  });
 }
 
 async function getLatestFatigue() {

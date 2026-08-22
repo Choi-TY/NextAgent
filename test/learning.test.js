@@ -20,3 +20,19 @@ test('manual edits update learning profile values', () => {
   assert.ok(next.difficultyBias > 0);
   assert.ok(next.focusBias > 0);
 });
+
+test('focus bias tracks low focus edits correctly', () => {
+  const profile = {
+    editCount: 0,
+    durationMultiplier: 1,
+    difficultyBias: 0,
+    focusBias: 0
+  };
+
+  const before = { difficulty: 'medium', estimatedMinutes: 30, focusLevel: 'high' };
+  const after = { difficulty: 'medium', estimatedMinutes: 30, focusLevel: 'low' };
+
+  const next = updateLearningProfileFromEdit(profile, before, after);
+
+  assert.equal(next.focusBias, -2);
+});

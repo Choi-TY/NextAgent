@@ -34,6 +34,8 @@ function heuristicAnalyze(task, learningProfile = {}) {
   let focusLevel = difficulty === 'hard' ? 'high' : difficulty === 'easy' ? 'low' : 'medium';
   if ((learningProfile.focusBias || 0) > 0.4 && focusLevel !== 'high') {
     focusLevel = focusLevel === 'low' ? 'medium' : 'high';
+  } else if ((learningProfile.focusBias || 0) < -0.4 && focusLevel !== 'low') {
+    focusLevel = focusLevel === 'high' ? 'medium' : 'low';
   }
 
   const todaySuitabilityScore = clamp(
@@ -60,18 +62,22 @@ function safeJsonParse(text) {
   }
 }
 
+function sanitizePromptValue(value) {
+  return String(value || '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/[{}<>`$]/g, '')
+    .trim()
+    .slice(0, 500);
+}
+
 async function analyzeTaskWithAI(task, learningProfile) {
   const fallback = heuristicAnalyze(task, learningProfile);
   let agentFrameworkLoaded = false;
-  let copilotUsed = false;
 
   try {
     const agentFramework = await import('@microsoft/agents-hosting');
     if (agentFramework?.AgentApplication) {
-      // Lightweight Agent Framework initialization to make the analysis flow framework-aware.
-      // It is intentionally side-effect free for local MVP execution.
-      // eslint-disable-next-line no-new
-      new agentFramework.AgentApplication();
+      // Agent Framework package presence is verified for analysis pipeline integration.
       agentFrameworkLoaded = true;
     }
   } catch (error) {
@@ -83,11 +89,10 @@ async function analyzeTaskWithAI(task, learningProfile) {
     if (typeof createCopilotClient === 'function' && process.env.GITHUB_TOKEN) {
       const client = await createCopilotClient({ auth: { token: process.env.GITHUB_TOKEN } });
       const session = await client.createSession?.();
-      const prompt = `Analyze this task as JSON with keys difficulty(easy|medium|hard), estimatedMinutes(number), focusLevel(low|medium|high), focusRequired(boolean), todaySuitabilityScore(1-100), reason(string). Task title: ${task.title}. Due date: ${task.dueDate || 'none'}. Memo: ${task.memo || 'none'}.`;
+      const prompt = `Analyze this task as JSON with keys difficulty(easy|medium|hard), estimatedMinutes(number), focusLevel(low|medium|high), focusRequired(boolean), todaySuitabilityScore(1-100), reason(string). Task title: ${sanitizePromptValue(task.title)}. Due date: ${sanitizePromptValue(task.dueDate || 'none')}. Memo: ${sanitizePromptValue(task.memo || 'none')}.`;
       const response = await session?.run?.(prompt);
       const parsed = safeJsonParse(response?.completion || response?.outputText || '');
       if (parsed?.difficulty && parsed?.estimatedMinutes) {
-        copilotUsed = true;
         return {
           ...fallback,
           ...parsed,
@@ -104,7 +109,7 @@ async function analyzeTaskWithAI(task, learningProfile) {
 
   return {
     ...fallback,
-    source: copilotUsed ? 'copilot-sdk' : 'heuristic-fallback',
+    source: 'heuristic-fallback',
     agentFrameworkLoaded
   };
 }
@@ -125,7 +130,7 @@ function updateLearningProfileFromEdit(learningProfile, before, after) {
   next.difficultyBias = ((next.difficultyBias || 0) * previousCount + difficultyDelta) / totalCount;
 
   const focusMap = { low: 0, medium: 1, high: 2 };
-  const focusDelta = (focusMap[after.focusLevel || 'medium'] || 1) - (focusMap[before.focusLevel || 'medium'] || 1);
+  const focusDelta = (focusMap[after.focusLevel || 'medium'] ?? 1) - (focusMap[before.focusLevel || 'medium'] ?? 1);
   next.focusBias = ((next.focusBias || 0) * previousCount + focusDelta) / totalCount;
 
   next.editCount = totalCount;
