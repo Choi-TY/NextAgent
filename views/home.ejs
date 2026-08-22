@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyStart - 대시보드</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="dashboard-header">
+        <div>
+          <h1>EasyStart</h1>
+          <p class="muted lead">AI가 오늘의 할 일을 분석하고 최적의 순서를 추천해 드립니다.</p>
+        </div>
+        <nav class="header-nav">
+          <a href="/tasks/new">＋ 작업 추가</a>
+          <a href="/weekly-record">주간 기록</a>
+        </nav>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- 왼쪽 열 -->
+        <div class="dashboard-col">
+
+          <!-- 피로도 입력 -->
+          <section class="card fatigue-card">
+            <h2>오늘의 피로도</h2>
+            <form method="post" action="/fatigue" class="fatigue-form">
+              <div class="fatigue-row">
+                <span class="fatigue-label">현재 피로도</span>
+                <input type="number" min="1" max="10" name="level" value="<%= fatigueLevel %>" required class="fatigue-input" />
+                <span class="fatigue-unit">/ 10</span>
+              </div>
+              <div class="fatigue-bar-wrap">
+                <div class="fatigue-bar" style="width:<%= fatigueLevel * 10 %>%; background:<%= fatigueLevel <= 3 ? '#22c55e' : fatigueLevel <= 6 ? '#f59e0b' : '#ef4444' %>"></div>
+              </div>
+              <button type="submit" class="btn-full">저장하고 추천 새로고침</button>
+            </form>
+          </section>
+
+          <!-- 최우선 추천 작업 -->
+          <section class="card">
+            <h2>🎯 지금 가장 추천되는 작업</h2>
+            <% if (bestTask) { %>
+            <div class="highlight">
+              <div class="task-title-row">
+                <strong class="task-title"><%= bestTask.title %></strong>
+                <span class="badge badge-<%= bestTask.currentAnalysis.difficulty %>"><%= difficultyLabel(bestTask.currentAnalysis.difficulty) %></span>
+              </div>
+              <p class="reason-text"><%= bestTask.recommendationReason %></p>
+              <div class="task-meta">
+                <span>⏱ <%= bestTask.currentAnalysis.estimatedMinutes %>분</span>
+                <span>적합도 <%= bestTask.currentAnalysis.todaySuitabilityScore %>점</span>
+              </div>
+              <a href="/tasks/<%= bestTask.id %>" class="btn-link">상세 보기 →</a>
+            </div>
+            <% } else { %>
+            <p class="muted">아직 작업이 없어요. 작업을 추가하면 AI 분석을 시작할 수 있어요.</p>
+            <% } %>
+          </section>
+
+          <!-- 난이도 분포 -->
+          <section class="card">
+            <h2>📊 난이도 분포</h2>
+            <div class="diff-dist">
+              <div class="diff-item">
+                <span class="diff-dot easy"></span>
+                <span>쉬움</span>
+                <strong><%= grouped.easy.length %></strong>
+              </div>
+              <div class="diff-item">
+                <span class="diff-dot medium"></span>
+                <span>보통</span>
+                <strong><%= grouped.medium.length %></strong>
+              </div>
+              <div class="diff-item">
+                <span class="diff-dot hard"></span>
+                <span>어려움</span>
+                <strong><%= grouped.hard.length %></strong>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- 오른쪽 열: 할일 목록 + 분석 결과 -->
+        <div class="dashboard-col">
+          <section class="card task-list-card">
+            <h2>📋 등록된 할일 목록 및 분석 결과</h2>
+            <% if (rankedTasks.length === 0) { %>
+            <p class="muted">등록된 작업이 없습니다. 작업을 추가해 보세요.</p>
+            <% } else { %>
+            <ol class="task-analysis-list">
+              <% rankedTasks.forEach((task, i) => { %>
+              <li class="task-analysis-item">
+                <div class="task-rank">#<%= i + 1 %></div>
+                <div class="task-info">
+                  <div class="task-title-row">
+                    <a href="/tasks/<%= task.id %>" class="task-title"><%= task.title %></a>
+                    <% if (task.completed) { %><span class="badge badge-done">완료</span><% } %>
+                    <span class="badge badge-<%= task.currentAnalysis.difficulty %>"><%= difficultyLabel(task.currentAnalysis.difficulty) %></span>
+                  </div>
+                  <div class="task-meta">
+                    <span>⏱ <%= task.currentAnalysis.estimatedMinutes %>분</span>
+                    <span>집중도: <%= focusLabel(task.currentAnalysis.focusLevel) %></span>
+                    <span>적합도: <strong><%= task.currentAnalysis.todaySuitabilityScore %>점</strong></span>
+                    <% if (task.dueDate) { %><span>📅 <%= task.dueDate %></span><% } %>
+                  </div>
+                  <div class="analysis-reason">
+                    <span class="reason-label">추천 이유</span>
+                    <span class="reason-text"><%= task.recommendationReason %></span>
+                  </div>
+                  <form method="post" action="/tasks/<%= task.id %>/delete" style="margin-top:0.4rem" onsubmit="return confirm('삭제하시겠습니까?')">
+                    <button type="submit" class="btn-danger btn-sm">🗑 삭제</button>
+                  </form>
+                </div>
+              </li>
+              <% }) %>
+            </ol>
+            <% } %>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

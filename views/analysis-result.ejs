@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyStart - 분석 결과</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>분석 결과</h1>
+      <p>현재 피로도: <strong><%= fatigueLevel %></strong></p>
+
+      <section class="card">
+        <h2>추천 순서</h2>
+        <ol>
+          <% rankedTasks.forEach(task => { %>
+          <li>
+            <a href="/tasks/<%= task.id %>"><%= task.title %></a>
+            (<%= difficultyLabel(task.currentAnalysis.difficulty) %>, <%= task.currentAnalysis.estimatedMinutes %>분)
+            - <a href="/tasks/<%= task.id %>">추천 이유 보기</a>
+          </li>
+          <% }) %>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2>난이도 분포</h2>
+        <p>쉬움: <%= grouped.easy.length %></p>
+        <p>보통: <%= grouped.medium.length %></p>
+        <p>어려움: <%= grouped.hard.length %></p>
+      </section>
+
+      <nav>
+        <a href="/">홈</a>
+        <a href="/tasks/new">작업 추가</a>
+        <a href="/weekly-record">주간 기록</a>
+      </nav>
+    </main>
+  </body>
+</html>

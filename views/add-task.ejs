@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EasyStart - 작업 추가</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>작업 추가</h1>
+      <form method="post" action="/tasks" class="card form-stack">
+        <label>
+          제목
+          <input name="title" required />
+        </label>
+        <label>
+          마감일
+          <input type="date" name="dueDate" />
+        </label>
+        <label>
+          메모 (선택)
+          <textarea name="memo" rows="4"></textarea>
+        </label>
+        <button type="submit">저장하고 AI 분석 실행</button>
+      </form>
+      <nav>
+        <a href="/">홈으로 돌아가기</a>
+      </nav>
+    </main>
+  </body>
+</html>
