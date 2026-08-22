@@ -8,10 +8,16 @@
 5. Recheck recommendation order from `/`
 
 ## Logs and AI fallback
-- If Copilot SDK call fails, server logs:
-  - `[AI] Copilot SDK inference failed, using fallback analysis.`
+- If Copilot SDK call succeeds, server logs:
+  - `[AI] Copilot SDK inference succeeded.`
+- If Copilot SDK call fails (CLI not installed/authenticated), server logs:
+  - `[AI] Copilot SDK inference failed, using fallback.`
+- If GitHub Models API call succeeds, server logs:
+  - `[AI] GitHub Models inference succeeded.`
+- If GitHub Models API call fails, server logs:
+  - `[AI] GitHub Models inference failed, using fallback.`
 - If Microsoft Agent Framework init fails, server logs:
-  - `[AI] Microsoft Agent Framework unavailable, using fallback analysis.`
+  - `[AI] Microsoft Agent Framework unavailable.`
 - App continues with deterministic heuristic output.
 
 ## Non-technical operator fallback behavior

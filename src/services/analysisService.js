@@ -1,9 +1,23 @@
 const { OpenAI } = require('openai');
+const { CopilotClient, approveAll } = require('@github/copilot-sdk');
 const difficultyScale = ['easy', 'medium', 'hard'];
 const { labelDifficulty, labelFocus } = require('../utils/labels');
 
 const GITHUB_MODELS_ENDPOINT = 'https://models.inference.ai.azure.com';
 const GITHUB_MODELS_MODEL = 'gpt-4o-mini';
+const COPILOT_SDK_MODEL = 'gpt-4o-mini';
+
+let agentFrameworkLoaded = false;
+(async () => {
+  try {
+    const agentFramework = await import('@microsoft/agents-hosting');
+    if (agentFramework?.AgentApplication) {
+      agentFrameworkLoaded = true;
+    }
+  } catch (error) {
+    console.warn('[AI] Microsoft Agent Framework unavailable.', error.message);
+  }
+})();
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -74,17 +88,80 @@ function sanitizePromptValue(value) {
     .slice(0, 500);
 }
 
+async function analyzeWithCopilotSDK(task, fallback) {
+  let client;
+  try {
+    client = new CopilotClient();
+    await client.start();
+
+    const prompt =
+      'Analyze this task and return ONLY a JSON object with keys: ' +
+      'difficulty ("easy"|"medium"|"hard"), estimatedMinutes (10-180), ' +
+      'focusLevel ("low"|"medium"|"high"), focusRequired (boolean), ' +
+      'todaySuitabilityScore (1-100), reason (short Korean sentence).\n\n' +
+      `Task title: ${sanitizePromptValue(task.title)}\n` +
+      `Due date: ${sanitizePromptValue(task.dueDate || 'none')}\n` +
+      `Memo: ${sanitizePromptValue(task.memo || 'none')}`;
+
+    let responseText = '';
+    const session = await client.createSession({
+      model: COPILOT_SDK_MODEL,
+      onPermissionRequest: approveAll
+    });
+
+    const done = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Copilot SDK timeout')), 30000);
+      session.on('assistant.message', (event) => {
+        responseText += event.data?.content || '';
+      });
+      session.on('session.idle', () => {
+        clearTimeout(timeout);
+        resolve();
+      });
+      session.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+    });
+
+    await session.send({ prompt });
+    try {
+      await done;
+    } finally {
+      try { await session.disconnect(); } catch (_) { /* ignore */ }
+    }
+
+    const parsed = safeJsonParse(responseText.replace(/```json|```/g, '').trim());
+    if (
+      parsed?.difficulty &&
+      ['easy', 'medium', 'hard'].includes(parsed.difficulty) &&
+      parsed?.estimatedMinutes
+    ) {
+      console.log('[AI] Copilot SDK inference succeeded.');
+      return {
+        ...fallback,
+        ...parsed,
+        estimatedMinutes: clamp(Number(parsed.estimatedMinutes) || fallback.estimatedMinutes, 10, 180),
+        todaySuitabilityScore: clamp(Number(parsed.todaySuitabilityScore) || fallback.todaySuitabilityScore, 1, 100),
+        source: 'copilot-sdk'
+      };
+    }
+    console.warn('[AI] Copilot SDK returned unexpected format, trying next source.', responseText.slice(0, 200));
+  } catch (error) {
+    console.warn('[AI] Copilot SDK inference failed, using fallback.', error.message);
+  } finally {
+    try { await client?.stop(); } catch (_) { /* ignore */ }
+  }
+  return null;
+}
+
 async function analyzeTaskWithAI(task, learningProfile) {
   const fallback = heuristicAnalyze(task, learningProfile);
-  let agentFrameworkLoaded = false;
 
-  try {
-    const agentFramework = await import('@microsoft/agents-hosting');
-    if (agentFramework?.AgentApplication) {
-      agentFrameworkLoaded = true;
-    }
-  } catch (error) {
-    console.warn('[AI] Microsoft Agent Framework unavailable.', error.message);
+  // Try Copilot SDK first (requires local Copilot CLI to be installed and authenticated)
+  const sdkResult = await analyzeWithCopilotSDK(task, fallback);
+  if (sdkResult) {
+    return { ...sdkResult, agentFrameworkLoaded };
   }
 
   const token = process.env.GITHUB_TOKEN;

@@ -20,7 +20,7 @@
   "focusRequired": true,
   "todaySuitabilityScore": 72,
   "reason": "string",
-  "source": "copilot-sdk|heuristic-fallback|user-edited",
+  "source": "copilot-sdk|github-models|heuristic-fallback|user-edited",
   "agentFrameworkLoaded": true
 }
 ```
