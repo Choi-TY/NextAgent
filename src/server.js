@@ -3,6 +3,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { analyzeTaskWithAI, updateLearningProfileFromEdit } = require('./services/analysisService');
 const { rankTasks, categorizeByDifficulty } = require('./services/recommendationService');
+const { labelDifficulty, labelFocus } = require('./utils/labels');
 const {
   addTask,
   getLatestFatigue,
@@ -17,6 +18,9 @@ const {
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.locals.difficultyLabel = labelDifficulty;
+app.locals.focusLabel = labelFocus;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
@@ -48,7 +52,7 @@ app.get('/tasks/new', (req, res) => {
 app.post('/tasks', async (req, res) => {
   const title = (req.body.title || '').trim();
   if (!title) {
-    return res.status(400).send('Title is required');
+    return res.status(400).send('제목은 필수 항목입니다.');
   }
 
   const task = {
@@ -76,7 +80,7 @@ app.post('/tasks', async (req, res) => {
 app.get('/tasks/:id', async (req, res) => {
   const task = await getTaskById(req.params.id);
   if (!task) {
-    return res.status(404).send('Task not found');
+    return res.status(404).send('작업을 찾을 수 없습니다.');
   }
 
   const latestFatigue = await getLatestFatigue();
@@ -86,21 +90,30 @@ app.get('/tasks/:id', async (req, res) => {
   res.render('task-detail', {
     task,
     fatigueLevel,
-    recommendationReason: ranked?.recommendationReason || 'Not enough data yet.'
+    recommendationReason: ranked?.recommendationReason || '아직 추천 근거가 충분하지 않습니다.'
   });
 });
 
 app.post('/tasks/:id/edit-analysis', async (req, res) => {
   const task = await getTaskById(req.params.id);
   if (!task) {
-    return res.status(404).send('Task not found');
+    return res.status(404).send('작업을 찾을 수 없습니다.');
+  }
+
+  const allowedDifficulties = new Set(['easy', 'medium', 'hard']);
+  const allowedFocusLevels = new Set(['low', 'medium', 'high']);
+  const difficulty = String(req.body.difficulty || '');
+  const focusLevel = String(req.body.focusLevel || '');
+
+  if (!allowedDifficulties.has(difficulty) || !allowedFocusLevels.has(focusLevel)) {
+    return res.status(400).send('유효하지 않은 난이도 또는 집중도 값입니다.');
   }
 
   const nextAnalysis = {
-    difficulty: req.body.difficulty,
+    difficulty,
     estimatedMinutes: Math.max(10, Math.min(180, Number(req.body.estimatedMinutes) || 30)),
-    focusLevel: req.body.focusLevel,
-    focusRequired: req.body.focusLevel !== 'low',
+    focusLevel,
+    focusRequired: focusLevel !== 'low',
     todaySuitabilityScore: Math.max(1, Math.min(100, Number(req.body.todaySuitabilityScore) || 50)),
     reason: (req.body.reason || '').trim() || task.currentAnalysis.reason,
     source: 'user-edited',
@@ -109,7 +122,7 @@ app.post('/tasks/:id/edit-analysis', async (req, res) => {
 
   const updatedTask = await updateTask(task.id, { currentAnalysis: nextAnalysis });
   if (!updatedTask) {
-    return res.status(500).send('Could not update task');
+    return res.status(500).send('작업을 업데이트할 수 없습니다.');
   }
   const profile = await getLearningProfile();
   const learned = updateLearningProfileFromEdit(profile, task.currentAnalysis, nextAnalysis);
@@ -123,7 +136,7 @@ app.post('/tasks/:id/edit-analysis', async (req, res) => {
 app.post('/tasks/:id/complete', async (req, res) => {
   const task = await getTaskById(req.params.id);
   if (!task) {
-    return res.status(404).send('Task not found');
+    return res.status(404).send('작업을 찾을 수 없습니다.');
   }
 
   await updateTask(task.id, {

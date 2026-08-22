@@ -1,35 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Weekly Record</title>
+    <title>주간 기록</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <main class="container">
-      <h1>Weekly Record</h1>
+      <h1>주간 기록</h1>
 
       <section class="card">
-        <h2>Completion vs Fatigue</h2>
-        <p>Tasks created this week: <strong><%= stats.createdCount %></strong></p>
-        <p>Tasks completed this week: <strong><%= stats.completedCount %></strong></p>
-        <p>Completion rate: <strong><%= stats.completionRate %>%</strong></p>
-        <p>Fatigue logs - low: <%= stats.fatigueBuckets.low %>, medium: <%= stats.fatigueBuckets.medium %>, high: <%= stats.fatigueBuckets.high %></p>
+        <h2>완료율과 피로도</h2>
+        <p>이번 주 생성한 작업: <strong><%= stats.createdCount %></strong></p>
+        <p>이번 주 완료한 작업: <strong><%= stats.completedCount %></strong></p>
+        <p>완료율: <strong><%= stats.completionRate %>%</strong></p>
+        <p>피로도 기록 - 낮음: <%= stats.fatigueBuckets.low %>, 보통: <%= stats.fatigueBuckets.medium %>, 높음: <%= stats.fatigueBuckets.high %></p>
       </section>
 
       <section class="card">
-        <h2>Frequently Postponed Difficulty</h2>
+        <h2>자주 미뤄지는 난이도</h2>
         <ul>
-          <li>easy: <%= stats.postponedDifficulty.easy %></li>
-          <li>medium: <%= stats.postponedDifficulty.medium %></li>
-          <li>hard: <%= stats.postponedDifficulty.hard %></li>
+          <li>쉬움: <%= stats.postponedDifficulty.easy %></li>
+          <li>보통: <%= stats.postponedDifficulty.medium %></li>
+          <li>어려움: <%= stats.postponedDifficulty.hard %></li>
         </ul>
       </section>
 
       <nav>
-        <a href="/">Home</a>
-        <a href="/analysis">Analysis Result</a>
+        <a href="/">홈</a>
+        <a href="/analysis">분석 결과</a>
       </nav>
     </main>
   </body>

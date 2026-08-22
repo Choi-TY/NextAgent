@@ -1,4 +1,5 @@
 const difficultyScale = ['easy', 'medium', 'hard'];
+const { labelDifficulty, labelFocus } = require('../utils/labels');
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -43,14 +44,13 @@ function heuristicAnalyze(task, learningProfile = {}) {
     10,
     95
   );
-
   return {
     difficulty,
     estimatedMinutes,
     focusLevel,
     focusRequired: focusLevel !== 'low',
     todaySuitabilityScore,
-    reason: `${difficulty.toUpperCase()} task estimated at ${estimatedMinutes}m with ${focusLevel} focus need.`
+    reason: `${labelDifficulty(difficulty)} 난이도의 작업으로 예상 소요 시간은 ${estimatedMinutes}분이며, 집중도는 ${labelFocus(focusLevel)} 수준이 필요합니다.`
   };
 }
 

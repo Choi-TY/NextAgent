@@ -1,3 +1,5 @@
+const { labelDifficulty } = require('../utils/labels');
+
 function daysUntil(dateString) {
   if (!dateString) return 30;
   const due = new Date(dateString);
@@ -24,13 +26,14 @@ function recommendationScore(task, fatigueLevel) {
 
 function reasonForRanking(task, fatigueLevel) {
   const analysis = task.currentAnalysis || task.aiAnalysis;
+  const difficultyLabel = labelDifficulty(analysis.difficulty);
   if (fatigueLevel >= 7) {
-    return `High fatigue mode: prioritizing manageable tasks. ${analysis.difficulty} difficulty fits current energy.`;
+    return `피로도가 높은 상태라 부담이 적은 작업을 우선 추천해요. 지금은 ${difficultyLabel} 난이도 작업이 적합합니다.`;
   }
   if (fatigueLevel <= 3) {
-    return `Low fatigue mode: prioritizing impact and challenge. ${analysis.difficulty} difficulty is a strong use of focus.`;
+    return `피로도가 낮아 집중이 잘 되는 상태예요. 지금은 ${difficultyLabel} 난이도 작업에 도전하기 좋아요.`;
   }
-  return `Balanced mode: combining urgency and effort. ${analysis.estimatedMinutes}m estimate keeps momentum.`;
+  return `균형 모드로 긴급도와 소요 시간을 함께 고려했어요. 예상 ${analysis.estimatedMinutes}분 작업으로 흐름을 유지하기 좋습니다.`;
 }
 
 function rankTasks(tasks, fatigueLevel = 5) {

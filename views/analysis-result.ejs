@@ -1,40 +1,40 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analysis Result</title>
+    <title>분석 결과</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <main class="container">
-      <h1>Analysis Result</h1>
-      <p>Fatigue level: <strong><%= fatigueLevel %></strong></p>
+      <h1>분석 결과</h1>
+      <p>현재 피로도: <strong><%= fatigueLevel %></strong></p>
 
       <section class="card">
-        <h2>Recommended Order</h2>
+        <h2>추천 순서</h2>
         <ol>
           <% rankedTasks.forEach(task => { %>
           <li>
             <a href="/tasks/<%= task.id %>"><%= task.title %></a>
-            (<%= task.currentAnalysis.difficulty %>, <%= task.currentAnalysis.estimatedMinutes %>m)
-            - <a href="/tasks/<%= task.id %>">View reason</a>
+            (<%= difficultyLabel(task.currentAnalysis.difficulty) %>, <%= task.currentAnalysis.estimatedMinutes %>분)
+            - <a href="/tasks/<%= task.id %>">추천 이유 보기</a>
           </li>
           <% }) %>
         </ol>
       </section>
 
       <section class="card">
-        <h2>Difficulty Categories</h2>
-        <p>Easy: <%= grouped.easy.length %></p>
-        <p>Medium: <%= grouped.medium.length %></p>
-        <p>Hard: <%= grouped.hard.length %></p>
+        <h2>난이도 분포</h2>
+        <p>쉬움: <%= grouped.easy.length %></p>
+        <p>보통: <%= grouped.medium.length %></p>
+        <p>어려움: <%= grouped.hard.length %></p>
       </section>
 
       <nav>
-        <a href="/">Home</a>
-        <a href="/tasks/new">Add Task</a>
-        <a href="/weekly-record">Weekly Record</a>
+        <a href="/">홈</a>
+        <a href="/tasks/new">작업 추가</a>
+        <a href="/weekly-record">주간 기록</a>
       </nav>
     </main>
   </body>

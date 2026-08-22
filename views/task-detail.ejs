@@ -1,77 +1,77 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task Detail</title>
+    <title>작업 상세</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <main class="container">
       <h1><%= task.title %></h1>
-      <p class="muted">Due: <%= task.dueDate || 'No deadline' %></p>
+      <p class="muted">마감일: <%= task.dueDate || '기한 없음' %></p>
       <% if (task.memo) { %>
       <p><%= task.memo %></p>
       <% } %>
 
       <section class="card">
-        <h2>AI Estimate (editable)</h2>
-        <p>Difficulty: <strong><%= task.currentAnalysis.difficulty %></strong></p>
-        <p>Estimated Time: <strong><%= task.currentAnalysis.estimatedMinutes %>m</strong></p>
-        <p>Focus Level: <strong><%= task.currentAnalysis.focusLevel %></strong></p>
-        <p>Today Suitability: <strong><%= task.currentAnalysis.todaySuitabilityScore %></strong></p>
-        <p>Recommendation reason: <%= recommendationReason %></p>
-        <p class="muted">Analysis source: <%= task.currentAnalysis.source %> / Agent Framework loaded: <%= task.currentAnalysis.agentFrameworkLoaded ? 'yes' : 'no' %></p>
+        <h2>AI 분석 결과 (수정 가능)</h2>
+        <p>난이도: <strong><%= difficultyLabel(task.currentAnalysis.difficulty) %></strong></p>
+        <p>예상 소요 시간: <strong><%= task.currentAnalysis.estimatedMinutes %>분</strong></p>
+        <p>집중도: <strong><%= focusLabel(task.currentAnalysis.focusLevel) %></strong></p>
+        <p>오늘의 적합도: <strong><%= task.currentAnalysis.todaySuitabilityScore %></strong></p>
+        <p>추천 이유: <%= recommendationReason %></p>
+        <p class="muted">분석 출처: <%= task.currentAnalysis.source %> / Agent Framework 로드: <%= task.currentAnalysis.agentFrameworkLoaded ? '예' : '아니오' %></p>
       </section>
 
       <section class="card">
-        <h3>Edit estimate</h3>
-        <p class="muted">You can correct AI output. Your edits improve future recommendations.</p>
+        <h3>분석값 수정</h3>
+        <p class="muted">AI 결과를 직접 보정할 수 있고, 수정 내역은 이후 추천 품질 향상에 반영됩니다.</p>
         <form method="post" action="/tasks/<%= task.id %>/edit-analysis" class="form-stack">
           <label>
-            Difficulty
+            난이도
             <select name="difficulty">
-              <option value="easy" <%= task.currentAnalysis.difficulty === 'easy' ? 'selected' : '' %>>easy</option>
-              <option value="medium" <%= task.currentAnalysis.difficulty === 'medium' ? 'selected' : '' %>>medium</option>
-              <option value="hard" <%= task.currentAnalysis.difficulty === 'hard' ? 'selected' : '' %>>hard</option>
+              <option value="easy" <%= task.currentAnalysis.difficulty === 'easy' ? 'selected' : '' %>>쉬움</option>
+              <option value="medium" <%= task.currentAnalysis.difficulty === 'medium' ? 'selected' : '' %>>보통</option>
+              <option value="hard" <%= task.currentAnalysis.difficulty === 'hard' ? 'selected' : '' %>>어려움</option>
             </select>
           </label>
           <label>
-            Estimated Minutes
+            예상 시간 (분)
             <input type="number" min="10" max="180" name="estimatedMinutes" value="<%= task.currentAnalysis.estimatedMinutes %>" />
           </label>
           <label>
-            Focus Level
+            집중도
             <select name="focusLevel">
-              <option value="low" <%= task.currentAnalysis.focusLevel === 'low' ? 'selected' : '' %>>low</option>
-              <option value="medium" <%= task.currentAnalysis.focusLevel === 'medium' ? 'selected' : '' %>>medium</option>
-              <option value="high" <%= task.currentAnalysis.focusLevel === 'high' ? 'selected' : '' %>>high</option>
+              <option value="low" <%= task.currentAnalysis.focusLevel === 'low' ? 'selected' : '' %>>낮음</option>
+              <option value="medium" <%= task.currentAnalysis.focusLevel === 'medium' ? 'selected' : '' %>>보통</option>
+              <option value="high" <%= task.currentAnalysis.focusLevel === 'high' ? 'selected' : '' %>>높음</option>
             </select>
           </label>
           <label>
-            Today Suitability Score (1-100)
+            오늘의 적합도 점수 (1~100)
             <input type="number" min="1" max="100" name="todaySuitabilityScore" value="<%= task.currentAnalysis.todaySuitabilityScore %>" />
           </label>
           <label>
-            Reason
+            사유
             <input name="reason" value="<%= task.currentAnalysis.reason %>" />
           </label>
-          <button type="submit">Save edits</button>
+          <button type="submit">수정 내용 저장</button>
         </form>
 
         <% if (!task.completed) { %>
         <form method="post" action="/tasks/<%= task.id %>/complete" class="top-gap">
-          <button type="submit">Mark completed</button>
+          <button type="submit">작업 완료 처리</button>
         </form>
         <% } else { %>
-        <p><strong>Completed</strong></p>
+        <p><strong>완료됨</strong></p>
         <% } %>
       </section>
 
       <nav>
-        <a href="/">Home</a>
-        <a href="/analysis">Analysis Result</a>
-        <a href="/weekly-record">Weekly Record</a>
+        <a href="/">홈</a>
+        <a href="/analysis">분석 결과</a>
+        <a href="/weekly-record">주간 기록</a>
       </nav>
     </main>
   </body>
