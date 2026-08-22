@@ -35,14 +35,15 @@ app.get('/', async (req, res) => {
   res.render('home', {
     fatigueLevel,
     rankedTasks,
-    bestTask: rankedTasks[0] || null
+    bestTask: rankedTasks[0] || null,
+    grouped: categorizeByDifficulty(rankedTasks)
   });
 });
 
 app.post('/fatigue', async (req, res) => {
   const level = Math.max(1, Math.min(10, Number(req.body.level) || 5));
   await recordFatigue(level);
-  res.redirect('/analysis');
+  res.redirect('/');
 });
 
 app.get('/tasks/new', (req, res) => {
@@ -166,7 +167,7 @@ app.get('/weekly-record', async (req, res) => {
 
 if (require.main === module) {
   app.listen(port, () => {
-    console.log(`NextAgent MVP running on http://localhost:${port}`);
+    console.log(`EasyStart running on http://localhost:${port}`);
   });
 }
 

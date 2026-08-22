@@ -156,6 +156,212 @@ li + li {
   max-width: 120px;
 }
 
-.top-gap {
-  margin-top: 12px;
+/* ── Dashboard layout ── */
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
 }
+
+.header-nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.header-nav a {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 0 20px;
+  align-items: start;
+}
+
+@media (max-width: 780px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Fatigue card ── */
+.fatigue-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fatigue-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fatigue-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.fatigue-input {
+  width: 64px !important;
+  text-align: center;
+}
+
+.fatigue-unit {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.fatigue-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fatigue-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.badge-easy   { background: #dcfce7; color: #15803d; }
+.badge-medium { background: #fef9c3; color: #a16207; }
+.badge-hard   { background: #fee2e2; color: #b91c1c; }
+.badge-done   { background: #e0e7ff; color: #3730a3; }
+
+/* ── Task title row ── */
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* ── Task meta ── */
+.task-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 4px 0;
+}
+
+/* ── Analysis reason ── */
+.analysis-reason {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+.reason-label {
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.reason-text {
+  color: var(--muted);
+}
+
+/* ── Task list card ── */
+.task-list-card {
+  min-height: 200px;
+}
+
+.task-analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.task-analysis-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.task-rank {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 28px;
+}
+
+.task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* ── Difficulty distribution ── */
+.diff-dist {
+  display: flex;
+  gap: 20px;
+}
+
+.diff-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.diff-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.diff-dot.easy   { background: #22c55e; }
+.diff-dot.medium { background: #f59e0b; }
+.diff-dot.hard   { background: #ef4444; }
