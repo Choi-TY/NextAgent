@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Detail</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1><%= task.title %></h1>
+      <p class="muted">Due: <%= task.dueDate || 'No deadline' %></p>
+      <% if (task.memo) { %>
+      <p><%= task.memo %></p>
+      <% } %>
+
+      <section class="card">
+        <h2>AI Estimate (editable)</h2>
+        <p>Difficulty: <strong><%= task.currentAnalysis.difficulty %></strong></p>
+        <p>Estimated Time: <strong><%= task.currentAnalysis.estimatedMinutes %>m</strong></p>
+        <p>Focus Level: <strong><%= task.currentAnalysis.focusLevel %></strong></p>
+        <p>Today Suitability: <strong><%= task.currentAnalysis.todaySuitabilityScore %></strong></p>
+        <p>Recommendation reason: <%= recommendationReason %></p>
+        <p class="muted">Analysis source: <%= task.currentAnalysis.source %> / Agent Framework loaded: <%= task.currentAnalysis.agentFrameworkLoaded ? 'yes' : 'no' %></p>
+      </section>
+
+      <section class="card">
+        <h3>Edit estimate</h3>
+        <p class="muted">You can correct AI output. Your edits improve future recommendations.</p>
+        <form method="post" action="/tasks/<%= task.id %>/edit-analysis" class="form-stack">
+          <label>
+            Difficulty
+            <select name="difficulty">
+              <option value="easy" <%= task.currentAnalysis.difficulty === 'easy' ? 'selected' : '' %>>easy</option>
+              <option value="medium" <%= task.currentAnalysis.difficulty === 'medium' ? 'selected' : '' %>>medium</option>
+              <option value="hard" <%= task.currentAnalysis.difficulty === 'hard' ? 'selected' : '' %>>hard</option>
+            </select>
+          </label>
+          <label>
+            Estimated Minutes
+            <input type="number" min="10" max="180" name="estimatedMinutes" value="<%= task.currentAnalysis.estimatedMinutes %>" />
+          </label>
+          <label>
+            Focus Level
+            <select name="focusLevel">
+              <option value="low" <%= task.currentAnalysis.focusLevel === 'low' ? 'selected' : '' %>>low</option>
+              <option value="medium" <%= task.currentAnalysis.focusLevel === 'medium' ? 'selected' : '' %>>medium</option>
+              <option value="high" <%= task.currentAnalysis.focusLevel === 'high' ? 'selected' : '' %>>high</option>
+            </select>
+          </label>
+          <label>
+            Today Suitability Score (1-100)
+            <input type="number" min="1" max="100" name="todaySuitabilityScore" value="<%= task.currentAnalysis.todaySuitabilityScore %>" />
+          </label>
+          <label>
+            Reason
+            <input name="reason" value="<%= task.currentAnalysis.reason %>" />
+          </label>
+          <button type="submit">Save edits</button>
+        </form>
+
+        <% if (!task.completed) { %>
+        <form method="post" action="/tasks/<%= task.id %>/complete" class="top-gap">
+          <button type="submit">Mark completed</button>
+        </form>
+        <% } else { %>
+        <p><strong>Completed</strong></p>
+        <% } %>
+      </section>
+
+      <nav>
+        <a href="/">Home</a>
+        <a href="/analysis">Analysis Result</a>
+        <a href="/weekly-record">Weekly Record</a>
+      </nav>
+    </main>
+  </body>
+</html>

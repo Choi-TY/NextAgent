@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weekly Record</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Weekly Record</h1>
+
+      <section class="card">
+        <h2>Completion vs Fatigue</h2>
+        <p>Tasks created this week: <strong><%= stats.createdCount %></strong></p>
+        <p>Tasks completed this week: <strong><%= stats.completedCount %></strong></p>
+        <p>Completion rate: <strong><%= stats.completionRate %>%</strong></p>
+        <p>Fatigue logs - low: <%= stats.fatigueBuckets.low %>, medium: <%= stats.fatigueBuckets.medium %>, high: <%= stats.fatigueBuckets.high %></p>
+      </section>
+
+      <section class="card">
+        <h2>Frequently Postponed Difficulty</h2>
+        <ul>
+          <li>easy: <%= stats.postponedDifficulty.easy %></li>
+          <li>medium: <%= stats.postponedDifficulty.medium %></li>
+          <li>hard: <%= stats.postponedDifficulty.hard %></li>
+        </ul>
+      </section>
+
+      <nav>
+        <a href="/">Home</a>
+        <a href="/analysis">Analysis Result</a>
+      </nav>
+    </main>
+  </body>
+</html>

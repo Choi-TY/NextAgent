@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analysis Result</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Analysis Result</h1>
+      <p>Fatigue level: <strong><%= fatigueLevel %></strong></p>
+
+      <section class="card">
+        <h2>Recommended Order</h2>
+        <ol>
+          <% rankedTasks.forEach(task => { %>
+          <li>
+            <a href="/tasks/<%= task.id %>"><%= task.title %></a>
+            (<%= task.currentAnalysis.difficulty %>, <%= task.currentAnalysis.estimatedMinutes %>m)
+            - <a href="/tasks/<%= task.id %>">View reason</a>
+          </li>
+          <% }) %>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2>Difficulty Categories</h2>
+        <p>Easy: <%= grouped.easy.length %></p>
+        <p>Medium: <%= grouped.medium.length %></p>
+        <p>Hard: <%= grouped.hard.length %></p>
+      </section>
+
+      <nav>
+        <a href="/">Home</a>
+        <a href="/tasks/new">Add Task</a>
+        <a href="/weekly-record">Weekly Record</a>
+      </nav>
+    </main>
+  </body>
+</html>

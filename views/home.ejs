@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NextAgent - Home</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>NextAgent</h1>
+      <p class="muted">Personal productivity MVP with AI-assisted planning.</p>
+
+      <section class="card">
+        <h2>Today Fatigue (1-10)</h2>
+        <form method="post" action="/fatigue" class="row">
+          <input type="number" min="1" max="10" name="level" value="<%= fatigueLevel %>" required />
+          <button type="submit">Save fatigue & refresh recommendations</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Best Task to Do Now</h2>
+        <% if (bestTask) { %>
+        <div class="highlight">
+          <strong><%= bestTask.title %></strong>
+          <p><%= bestTask.recommendationReason %></p>
+          <a href="/tasks/<%= bestTask.id %>">View detail</a>
+        </div>
+        <% } else { %>
+        <p>No tasks yet. Add one to start analysis.</p>
+        <% } %>
+      </section>
+
+      <section class="card">
+        <h2>Today Recommended Tasks</h2>
+        <ul>
+          <% rankedTasks.forEach(task => { %>
+          <li>
+            <a href="/tasks/<%= task.id %>"><%= task.title %></a>
+            - <%= task.currentAnalysis.difficulty %>, <%= task.currentAnalysis.estimatedMinutes %>m
+          </li>
+          <% }) %>
+        </ul>
+      </section>
+
+      <nav>
+        <a href="/tasks/new">Add Task</a>
+        <a href="/analysis">Analysis Result</a>
+        <a href="/weekly-record">Weekly Record</a>
+      </nav>
+    </main>
+  </body>
+</html>
