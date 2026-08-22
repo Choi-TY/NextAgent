@@ -7,6 +7,7 @@ const { rankTasks, categorizeByDifficulty } = require('./services/recommendation
 const { labelDifficulty, labelFocus } = require('./utils/labels');
 const {
   addTask,
+  deleteTask,
   getLatestFatigue,
   getLearningProfile,
   getTaskById,
@@ -147,6 +148,14 @@ app.post('/tasks/:id/complete', async (req, res) => {
   });
 
   res.redirect('/weekly-record');
+});
+
+app.post('/tasks/:id/delete', async (req, res) => {
+  const deleted = await deleteTask(req.params.id);
+  if (!deleted) {
+    return res.status(404).send('작업을 찾을 수 없습니다.');
+  }
+  res.redirect('/');
 });
 
 app.get('/analysis', async (req, res) => {

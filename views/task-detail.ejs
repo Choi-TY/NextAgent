@@ -21,7 +21,20 @@
         <p>집중도: <strong><%= focusLabel(task.currentAnalysis.focusLevel) %></strong></p>
         <p>오늘의 적합도: <strong><%= task.currentAnalysis.todaySuitabilityScore %></strong></p>
         <p>추천 이유: <%= recommendationReason %></p>
-        <p class="muted">분석 출처: <%= task.currentAnalysis.source %> / Agent Framework 로드: <%= task.currentAnalysis.agentFrameworkLoaded ? '예' : '아니오' %></p>
+        <p class="muted">
+          분석 출처:
+          <% const src = task.currentAnalysis.source; %>
+          <% if (src === 'copilot-sdk') { %>
+            <strong style="color:#6366f1">🤖 Copilot SDK</strong>
+          <% } else if (src === 'github-models') { %>
+            <strong style="color:#0ea5e9">☁️ GitHub Models API</strong>
+          <% } else if (src === 'user-edited') { %>
+            <strong style="color:#22c55e">✏️ 사용자 수정</strong>
+          <% } else { %>
+            <strong style="color:#94a3b8">📐 휴리스틱</strong>
+          <% } %>
+          &nbsp;/ Agent Framework: <%= task.currentAnalysis.agentFrameworkLoaded ? '✅' : '❌' %>
+        </p>
       </section>
 
       <section class="card">
@@ -66,6 +79,10 @@
         <% } else { %>
         <p><strong>완료됨</strong></p>
         <% } %>
+
+        <form method="post" action="/tasks/<%= task.id %>/delete" class="top-gap" onsubmit="return confirm('이 작업을 삭제하시겠습니까?')">
+          <button type="submit" class="btn-danger">🗑 작업 삭제</button>
+        </form>
       </section>
 
       <nav>

@@ -76,6 +76,17 @@ async function updateTask(id, updates) {
   });
 }
 
+async function deleteTask(id) {
+  return queueWrite(async () => {
+    const data = await loadData();
+    const index = data.tasks.findIndex((task) => task.id === id);
+    if (index === -1) return false;
+    data.tasks.splice(index, 1);
+    await saveData(data);
+    return true;
+  });
+}
+
 async function updateLearningProfile(learningProfile) {
   return queueWrite(async () => {
     const data = await loadData();
@@ -146,6 +157,7 @@ async function getLearningProfile() {
 
 module.exports = {
   addTask,
+  deleteTask,
   getLatestFatigue,
   getLearningProfile,
   getTaskById,

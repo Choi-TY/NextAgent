@@ -365,3 +365,19 @@ li + li {
 .diff-dot.easy   { background: #22c55e; }
 .diff-dot.medium { background: #f59e0b; }
 .diff-dot.hard   { background: #ef4444; }
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn-danger:hover { background: #dc2626; }
+
+.btn-sm {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+}
