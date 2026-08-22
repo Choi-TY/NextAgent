@@ -1,5 +1,9 @@
+const { OpenAI } = require('openai');
 const difficultyScale = ['easy', 'medium', 'hard'];
 const { labelDifficulty, labelFocus } = require('../utils/labels');
+
+const GITHUB_MODELS_ENDPOINT = 'https://models.inference.ai.azure.com';
+const GITHUB_MODELS_MODEL = 'gpt-4o-mini';
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -77,41 +81,72 @@ async function analyzeTaskWithAI(task, learningProfile) {
   try {
     const agentFramework = await import('@microsoft/agents-hosting');
     if (agentFramework?.AgentApplication) {
-      // Agent Framework package presence is verified for analysis pipeline integration.
       agentFrameworkLoaded = true;
     }
   } catch (error) {
-    console.warn('[AI] Microsoft Agent Framework unavailable, using fallback analysis.', error.message);
+    console.warn('[AI] Microsoft Agent Framework unavailable.', error.message);
+  }
+
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    console.warn('[AI] GITHUB_TOKEN not set — using heuristic fallback.');
+    return { ...fallback, source: 'heuristic-fallback', agentFrameworkLoaded };
   }
 
   try {
-    const { createCopilotClient } = await import('@github/copilot-sdk');
-    if (typeof createCopilotClient === 'function' && process.env.GITHUB_TOKEN) {
-      const client = await createCopilotClient({ auth: { token: process.env.GITHUB_TOKEN } });
-      const session = await client.createSession?.();
-      const prompt = `Analyze this task as JSON with keys difficulty(easy|medium|hard), estimatedMinutes(number), focusLevel(low|medium|high), focusRequired(boolean), todaySuitabilityScore(1-100), reason(string). Task title: ${sanitizePromptValue(task.title)}. Due date: ${sanitizePromptValue(task.dueDate || 'none')}. Memo: ${sanitizePromptValue(task.memo || 'none')}.`;
-      const response = await session?.run?.(prompt);
-      const parsed = safeJsonParse(response?.completion || response?.outputText || '');
-      if (parsed?.difficulty && parsed?.estimatedMinutes) {
-        return {
-          ...fallback,
-          ...parsed,
-          estimatedMinutes: clamp(Number(parsed.estimatedMinutes) || fallback.estimatedMinutes, 10, 180),
-          todaySuitabilityScore: clamp(Number(parsed.todaySuitabilityScore) || fallback.todaySuitabilityScore, 1, 100),
-          source: 'copilot-sdk',
-          agentFrameworkLoaded
-        };
-      }
+    const client = new OpenAI({
+      baseURL: GITHUB_MODELS_ENDPOINT,
+      apiKey: token
+    });
+
+    const systemPrompt =
+      'You are a task analysis assistant. Respond ONLY with a JSON object, no markdown, no extra text.';
+    const userPrompt =
+      `Analyze this task and return a JSON object with exactly these keys:\n` +
+      `- difficulty: "easy", "medium", or "hard"\n` +
+      `- estimatedMinutes: integer between 10 and 180\n` +
+      `- focusLevel: "low", "medium", or "high"\n` +
+      `- focusRequired: boolean\n` +
+      `- todaySuitabilityScore: integer between 1 and 100\n` +
+      `- reason: a short Korean sentence explaining the assessment\n\n` +
+      `Task title: ${sanitizePromptValue(task.title)}\n` +
+      `Due date: ${sanitizePromptValue(task.dueDate || 'none')}\n` +
+      `Memo: ${sanitizePromptValue(task.memo || 'none')}`;
+
+    const response = await client.chat.completions.create({
+      model: GITHUB_MODELS_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.2,
+      max_tokens: 300
+    });
+
+    const raw = response.choices?.[0]?.message?.content || '';
+    const parsed = safeJsonParse(raw.replace(/```json|```/g, '').trim());
+
+    if (
+      parsed?.difficulty &&
+      ['easy', 'medium', 'hard'].includes(parsed.difficulty) &&
+      parsed?.estimatedMinutes
+    ) {
+      console.log('[AI] GitHub Models inference succeeded.');
+      return {
+        ...fallback,
+        ...parsed,
+        estimatedMinutes: clamp(Number(parsed.estimatedMinutes) || fallback.estimatedMinutes, 10, 180),
+        todaySuitabilityScore: clamp(Number(parsed.todaySuitabilityScore) || fallback.todaySuitabilityScore, 1, 100),
+        source: 'github-models',
+        agentFrameworkLoaded
+      };
     }
+    console.warn('[AI] Unexpected response format from GitHub Models, using fallback.', raw.slice(0, 200));
   } catch (error) {
-    console.warn('[AI] Copilot SDK inference failed, using fallback analysis.', error.message);
+    console.warn('[AI] GitHub Models inference failed, using fallback.', error.message);
   }
 
-  return {
-    ...fallback,
-    source: 'heuristic-fallback',
-    agentFrameworkLoaded
-  };
+  return { ...fallback, source: 'heuristic-fallback', agentFrameworkLoaded };
 }
 
 function updateLearningProfileFromEdit(learningProfile, before, after) {

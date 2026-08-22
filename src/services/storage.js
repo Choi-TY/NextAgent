@@ -1,7 +1,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 
-const DATA_FILE = path.join(__dirname, '../../data/app-data.json');
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, '../../data/app-data.json');
 let writeQueue = Promise.resolve();
 
 const defaultData = {
